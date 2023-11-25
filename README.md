@@ -1,5 +1,11 @@
 # CSCE451-C3
 
+You can download an example dataset for the `MalwareAnalysis` project from the following link:
+
+[Download Example Dataset](https://drive.google.com/file/d/1--hwCz_JKIm1IQfF19zqdLO_mTTjpGYz/view?usp=sharing)
+
+This dataset can be used to test and train the model.
+
 ## Training the Model on Your Own Dataset
 
 1. **Create Folder Structure**:
