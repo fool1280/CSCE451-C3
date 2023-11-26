@@ -28,4 +28,5 @@ if __name__ == "__main__":
     # Predict with the model
     prediction = model.predict(file_content_normalized)
     print("Prediction:", prediction)
+    print("Prediction probability:", model.predict_proba(file_content_normalized))
 
