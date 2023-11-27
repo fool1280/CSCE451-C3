@@ -1,4 +1,6 @@
 import os
+import sys
+from argparse import ArgumentParser
 from typing import *
 import shutil
 from joblib import load
@@ -6,7 +8,7 @@ import numpy as np
 from parsing import disassemble_and_process
 from stats import get_most_similar_top_5
 
-def classify(model, vectorizer, filepath : str, threshold : float = 0.5) -> str:
+def classify(model, vectorizer, filepath : str, threshold : float, criteria : str):
     assert(0 <= threshold <= 1.0)
     ''' Classify file as benign, inconclusive, or malware. Copies file 
     
@@ -56,16 +58,40 @@ def classify(model, vectorizer, filepath : str, threshold : float = 0.5) -> str:
         emd_sim = np.mean(emd['EMD'])
         print('hel_sim:', hel_sim, 'emd_sim:', emd_sim)
 
-        if hel_sim < threshold:
-            print('INSIGNIFICANT')
+        if criteria == 'Hellinger':
+            sim = hel_sim
+        else:
+            sim = emd_sim
+        
+        if sim < threshold:
+            print('INCONCLUSIVE')
+            outpath = os.path.join(OUTPUT_INCONCLUSIVE_DIR, os.path.basename(filepath))
         else:
             print('MALWARE')
-
-        outpath = os.path.join(OUTPUT_MALWARE_DIR, os.path.basename(filepath))
+            outpath = os.path.join(OUTPUT_MALWARE_DIR, os.path.basename(filepath))
+        
         shutil.copy(filepath, outpath)
 
 
+
+
 if __name__ == '__main__':
+    # Check if an argument is provided
+    parser = ArgumentParser()
+    parser.add_argument('--threshold', 
+                        dest='threshold', 
+                        required=False, 
+                        default=0.5, 
+                        type=float,
+                        help = 'Given that the ML model classifies the executable as malware, this threshold determines whether executable is sent to inconclusive directory or malware directory')
+    parser.add_argument('--criteria', 
+                        dest='criteria', 
+                        required=False, 
+                        default='Hellinger', 
+                        help = 'Hellinger or EMD, the statistical similarity criteria')
+    args = parser.parse_args()
+
+
     # FIXME customize threshold, criteria
     INPUT_DIR = 'input'
     CACHE_DIR = 'output/cache'
@@ -83,8 +109,7 @@ if __name__ == '__main__':
     for file in os.listdir(INPUT_DIR):
         # file = os.path.abspath(os.path.join(INPUT_DIR,file))
         file = os.path.join(INPUT_DIR,file)
-        print(file)
-        classify(model, cv2, file, threshold=0.55)
+        classify(model, cv2, file, threshold=args.threshold, criteria=args.criteria)
 
     
 
