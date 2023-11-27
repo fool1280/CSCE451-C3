@@ -1,7 +1,7 @@
 import os
 import sys
+from tqdm import tqdm
 from argparse import ArgumentParser
-from typing import *
 import shutil
 from joblib import load
 import numpy as np
@@ -9,8 +9,8 @@ from parsing import disassemble_and_process
 from stats import get_most_similar_top_5
 
 def classify(model, vectorizer, filepath : str, threshold : float, criteria : str):
-    assert(0 <= threshold <= 1.0)
-    ''' Classify file as benign, inconclusive, or malware. Copies file 
+    ''' Classify file as benign, inconclusive, or malware. 
+    Copies file and statistical info to corresponding directory.
     
     FIXME -- Currently, only malware may be classified as inconclusive    
     '''
@@ -26,7 +26,6 @@ def classify(model, vectorizer, filepath : str, threshold : float, criteria : st
 
     # Predict with the model
     prediction = model.predict(file_content_normalized)
-    print('prediction:', prediction)
     
     
     if prediction[0] == 0:
@@ -56,21 +55,22 @@ def classify(model, vectorizer, filepath : str, threshold : float, criteria : st
 
         hel_sim = np.mean(hel['Hellinger Distance'])
         emd_sim = np.mean(emd['EMD'])
-        print('hel_sim:', hel_sim, 'emd_sim:', emd_sim)
 
         if criteria == 'Hellinger':
             sim = hel_sim
+            sim_df = hel
         else:
             sim = emd_sim
+            sim_df = emd
         
         if sim < threshold:
-            print('INCONCLUSIVE')
             outpath = os.path.join(OUTPUT_INCONCLUSIVE_DIR, os.path.basename(filepath))
         else:
-            print('MALWARE')
             outpath = os.path.join(OUTPUT_MALWARE_DIR, os.path.basename(filepath))
-        
         shutil.copy(filepath, outpath)
+
+        infopath = f'{outpath}_nearest_{criteria}.csv'
+        sim_df.to_csv(infopath)
 
 
 
@@ -88,11 +88,11 @@ if __name__ == '__main__':
                         dest='criteria', 
                         required=False, 
                         default='Hellinger', 
-                        help = 'Hellinger or EMD, the statistical similarity criteria')
+                        help = 'Hellinger or EMD, the statistical similarity criteria',)
     args = parser.parse_args()
+    assert(0 <= args.threshold <= 1.0)
+    assert(args.criteria in ['Hellinger', 'EMD'])
 
-
-    # FIXME customize threshold, criteria
     INPUT_DIR = 'input'
     CACHE_DIR = 'output/cache'
     OUTPUT_MALWARE_DIR = 'output/malware'
@@ -106,7 +106,7 @@ if __name__ == '__main__':
     model = load('rf_opcodes_freq_ngram_2.joblib')
     cv2 = load('count_vectorizer.joblib')
 
-    for file in os.listdir(INPUT_DIR):
+    for file in tqdm(os.listdir(INPUT_DIR)):
         # file = os.path.abspath(os.path.join(INPUT_DIR,file))
         file = os.path.join(INPUT_DIR,file)
         classify(model, cv2, file, threshold=args.threshold, criteria=args.criteria)
