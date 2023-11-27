@@ -2,36 +2,33 @@ import subprocess
 import sys
 import re
 
-def disassemble_and_process(file_name):
+def disassemble_and_process(file_name, cache_dir = '.'):
     # Disassemble the file
     print(f"Disassembling {file_name}...")
     disassembly_output = subprocess.run(["objdump", "-d", file_name], capture_output=True, text=True).stdout
 
     # Write the disassembly to a file
-    disassembly_file_name = f"{file_name}_disassembly.txt"
-    opcodes_file_name = f"{file_name}_opcodes.txt"
+    disassembly_file_name = f"{cache_dir}/{file_name}_disassembly.txt"
+    opcodes_file_name = f"{cache_dir}/{file_name}_opcodes.txt"
     with open(disassembly_file_name, "w") as f:
         f.write(disassembly_output)
+        print('wrote to', disassembly_file_name)
 
     # Process the disassembly file
     print(f"Processing {disassembly_file_name}...")
-    process_disassembly(disassembly_file_name, opcodes_file_name)
+    process_disassembly(disassembly_file_name, opcodes_file_name, cache_dir)
 
 def extract_opcodes(line):
     parts = line.split('\t')
-    # breakpoint()
     if len(parts) > 2:
         # The opcode is typically the second part of the line, after splitting by tab
         opcode = parts[2].split()[0]
         print(opcode)
         # opcode = parts[1].strip() # FOR MAC ONLY 
         return opcode
-    else:
-        print(parts)
-        breakpoint()
     return None
 
-def process_disassembly(disassembly_file_name, opcodes_file_name):
+def process_disassembly(disassembly_file_name, opcodes_file_name, cache_dir = '.'):
     with open(disassembly_file_name, "r") as file:
         lines = file.readlines()
 
@@ -63,8 +60,7 @@ def process_disassembly(disassembly_file_name, opcodes_file_name):
     with open(opcodes_file_name, 'w') as file:
         for opcode in opcodes:
             file.write(opcode + '\n')
-    # breakpoint()
-    with open("ml_input.txt", 'w') as file:
+    with open(f"{cache_dir}/ml_input.txt", 'w') as file:
         file.write(opcodes_output)
 
 if __name__ == "__main__":
