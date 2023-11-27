@@ -1,7 +1,8 @@
 import sys
 from joblib import load
-# Import the function from parsing.py
+import numpy as np
 from parsing import disassemble_and_process
+from stats import most_similar_top_5
 
 if __name__ == "__main__":
     # Check if an argument is provided
@@ -27,6 +28,22 @@ if __name__ == "__main__":
 
     # Predict with the model
     prediction = model.predict(file_content_normalized)
-    print("Prediction:", prediction)
-    print("Prediction probability:", model.predict_proba(file_content_normalized))
+
+    file_content = file_content.split()
+    file_content = [x[:-1] for x in file_content if x[-1] == 'q']
+    new_row = dict()
+    cols = {
+        'mov', 'push', 'call', 'lea', 'add', 'jae', 'inc', 'cmp', 'sub', 'jmp',
+        'dec', 'shl', 'pop', 'xchg', 'je', 'jne', 'xor', 'test', 'ret', 'jo',
+        'imul', 'and', 'in', 'jge', 'outsb', 'fstp', 'sbb', 'adc', 'jp', 'insb', 'other'
+    }
+    for col in cols:
+        new_row[col] = 0
+
+    for opcode in file_content:
+        if opcode in cols:
+            new_row[opcode] += 1
+        else:
+            new_row['other'] += 1
+    most_similar_top_5(new_row, prediction[0])
 
