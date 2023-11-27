@@ -4,6 +4,39 @@ from matplotlib.figure import Figure
 import pandas as pd
 import numpy as np
 from scipy.stats import wasserstein_distance
+from tkinter import scrolledtext
+import requests
+import json
+
+def displayInfo(info):
+    def fetch_data(url):
+        response = requests.get(url)
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return {"error": f"Failed to fetch data: {response.status_code}"}
+
+    def format_data(data):
+        formatted = json.dumps(data, indent=4)  # Pretty print the JSON data
+        return formatted
+
+    # URL for the GET request (You can modify this with the actual URL)
+    url = f'https://virusshare.com/apiv2/file?apikey=51Rt0fdxidIDSaRb9drnZH62NjGI58Gi&hash={info[11:]}'
+
+    # Fetch and format the data
+    data = fetch_data(url)
+    formatted_data = format_data(data)
+
+    # Create the main window
+    root = tk.Tk()
+    root.title(f'{info} in details')
+
+    # Create a scrolled text widget
+    scrolled_text = scrolledtext.ScrolledText(root, wrap=tk.WORD, width=150, height=30)
+    scrolled_text.grid(column=0, pady=10, padx=10)
+
+    # Insert data into the scrolled text widget
+    scrolled_text.insert(tk.INSERT, formatted_data)
 
 def plot_row(data, index1, index2, row3_dict, title):
     # Extract the rows to be compared
@@ -39,6 +72,9 @@ def plot_row(data, index1, index2, row3_dict, title):
     ax.bar(indices - bar_width, row1_normalized.values, bar_width, label=file_name1[:-4] + ' based on Earth Mover\'s Distance')
     ax.bar(indices, row2_normalized.values, bar_width, label=file_name2[:-4] + ' based on Hellinger Distance')
     ax.bar(indices + bar_width, aligned_row3_normalized.values, bar_width, label='Given executable')
+
+    displayInfo(file_name1[:-4])
+    displayInfo(file_name2[:-4])
 
     # Plot settings
     ax.set_title('Opcode Distribution Comparison (Normalized)')
