@@ -19,10 +19,16 @@ def disassemble_and_process(file_name):
 
 def extract_opcodes(line):
     parts = line.split('\t')
-    if len(parts) >= 2:
+    # breakpoint()
+    if len(parts) > 2:
         # The opcode is typically the second part of the line, after splitting by tab
-        opcode = parts[1].strip()
+        opcode = parts[2].split()[0]
+        print(opcode)
+        # opcode = parts[1].strip() # FOR MAC ONLY 
         return opcode
+    else:
+        print(parts)
+        breakpoint()
     return None
 
 def process_disassembly(disassembly_file_name, opcodes_file_name):
@@ -57,7 +63,7 @@ def process_disassembly(disassembly_file_name, opcodes_file_name):
     with open(opcodes_file_name, 'w') as file:
         for opcode in opcodes:
             file.write(opcode + '\n')
-
+    # breakpoint()
     with open("ml_input.txt", 'w') as file:
         file.write(opcodes_output)
 
