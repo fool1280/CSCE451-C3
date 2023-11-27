@@ -1,18 +1,24 @@
 import subprocess
 import sys
 import re
+import os
 
 def disassemble_and_process(file_name, cache_dir = '.'):
+    file_path = file_name
+    file_name = os.path.basename(file_name)
     # Disassemble the file
     print(f"Disassembling {file_name}...")
-    disassembly_output = subprocess.run(["objdump", "-d", file_name], capture_output=True, text=True).stdout
+    try:
+        disassembly_output = subprocess.run(["objdump", "-d", file_path], capture_output=True, text=True, check=True).stdout
+    except subprocess.CalledProcessError as e:
+        print(f"Command failed with return code {e.returncode}: {e.stderr}")
+        exit(1)
 
     # Write the disassembly to a file
     disassembly_file_name = f"{cache_dir}/{file_name}_disassembly.txt"
     opcodes_file_name = f"{cache_dir}/{file_name}_opcodes.txt"
     with open(disassembly_file_name, "w") as f:
         f.write(disassembly_output)
-        print('wrote to', disassembly_file_name)
 
     # Process the disassembly file
     print(f"Processing {disassembly_file_name}...")
@@ -23,7 +29,6 @@ def extract_opcodes(line):
     if len(parts) > 2:
         # The opcode is typically the second part of the line, after splitting by tab
         opcode = parts[2].split()[0]
-        print(opcode)
         # opcode = parts[1].strip() # FOR MAC ONLY 
         return opcode
     return None
