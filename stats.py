@@ -96,7 +96,32 @@ def hellinger_distance(p, q):
 def earth_movers_distance(p, q):
     return wasserstein_distance(p, q)
 
-def most_similar_top_5(new_row, result=None):
+def get_most_similar_top_5(new_row, result=None):
+    data = pd.read_csv('all_data.csv')
+    new_row_series = pd.Series(new_row)
+    new_row_normalized = new_row_series / new_row_series.sum()
+
+    reference_data = data[['File Name', 'Family']]
+
+    numeric_data = data.drop(['File Name', 'Family'], axis=1)
+    normalized_data = numeric_data.div(numeric_data.sum(axis=1), axis=0)
+
+    # Calculating Hellinger distance
+    hellinger_distances = normalized_data.apply(lambda row: hellinger_distance(row, new_row_normalized), axis=1)
+    
+    # Calculating Earth Mover's distance
+    emd_distances = normalized_data.apply(lambda row: earth_movers_distance(row, new_row_normalized), axis=1)
+
+    # Combine results
+    results = pd.concat([reference_data, pd.DataFrame({'Hellinger Distance': hellinger_distances, 'EMD': emd_distances})], axis=1)
+    
+    top_5_hellinger = results.sort_values(by='Hellinger Distance', ascending=True).head(5)
+    top_5_emd = results.sort_values(by='EMD', ascending=True).head(5)
+
+    return top_5_hellinger, top_5_emd
+
+
+def visualize_most_similar_top_5(new_row, result=None):
     data = pd.read_csv('all_data.csv')
     new_row_series = pd.Series(new_row)
     new_row_normalized = new_row_series / new_row_series.sum()
@@ -163,7 +188,7 @@ if __name__ == "__main__":
             new_row[opcode] += 1
         else:
             new_row['other'] += 1
-    most_similar_top_5(new_row)
+    visualize_most_similar_top_5(new_row)
 
 
     
