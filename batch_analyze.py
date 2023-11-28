@@ -5,7 +5,7 @@ from argparse import ArgumentParser
 import shutil
 from joblib import load
 import numpy as np
-from parsing import disassemble_and_process
+from parsing import disassemble_and_process, is_running_on_linux, is_running_on_mac
 from stats import get_most_similar_top_5
 
 def classify(model, vectorizer, filepath : str, threshold : float, criteria : str):
@@ -35,7 +35,8 @@ def classify(model, vectorizer, filepath : str, threshold : float, criteria : st
     else:
         # stats calculations
         file_content = file_content.split()
-        file_content = [x[:-1] for x in file_content if x[-1] == 'q']
+        if is_running_on_mac():
+            file_content = [x[:-1] for x in file_content if x[-1] == 'q']
         new_row = dict()
         cols = {
             'mov', 'push', 'call', 'lea', 'add', 'jae', 'inc', 'cmp', 'sub', 'jmp',
@@ -63,6 +64,8 @@ def classify(model, vectorizer, filepath : str, threshold : float, criteria : st
             sim = emd_sim
             sim_df = emd
         
+        print(f'Average {args.criteria} similarity:', sim)
+        
         if sim < threshold:
             outpath = os.path.join(OUTPUT_INCONCLUSIVE_DIR, os.path.basename(filepath))
         else:
@@ -70,7 +73,7 @@ def classify(model, vectorizer, filepath : str, threshold : float, criteria : st
         shutil.copy(filepath, outpath)
 
         infopath = f'{outpath}_nearest_{criteria}.csv'
-        sim_df.to_csv(infopath)
+        sim_df.to_csv(infopath, index=False)
 
 
 
@@ -81,7 +84,7 @@ if __name__ == '__main__':
     parser.add_argument('--threshold', 
                         dest='threshold', 
                         required=False, 
-                        default=0.5, 
+                        default=0.23, 
                         type=float,
                         help = 'Given that the ML model classifies the executable as malware, this threshold determines whether executable is sent to inconclusive directory or malware directory')
     parser.add_argument('--criteria', 
