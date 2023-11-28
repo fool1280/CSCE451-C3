@@ -6,12 +6,17 @@ from stats import most_similar_top_5
 import requests
 import time
 import threading
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 def getInfo(file):
+    api_key = os.environ.get('VIRUSTOTAL_API_KEY')
+
     url = 'https://www.virustotal.com/api/v3/files/upload_url'
     headers = {
         'accept': 'application/json',
-        'x-apikey': 'bd162e9eb911d1ad4c964ccc45af431dfdaa24e96f6aba72245d808bb69e1298'
+        'x-apikey': api_key
     }
     response = requests.get(url, headers=headers)
     upload_url = response.json()['data']
@@ -19,14 +24,14 @@ def getInfo(file):
     files = { 'file': (file, open(file, 'rb'), 'application/octet-stream') }
     headers = {
         'accept': 'application/json',
-        'x-apikey': 'bd162e9eb911d1ad4c964ccc45af431dfdaa24e96f6aba72245d808bb69e1298'
+        'x-apikey': api_key
     }
     response = requests.post(upload_url, files=files, headers=headers)
     analysis_url = response.json()['data']['links']['self']
 
     headers = {
         'accept': 'application/json',
-        'x-apikey': 'bd162e9eb911d1ad4c964ccc45af431dfdaa24e96f6aba72245d808bb69e1298'
+        'x-apikey': api_key
     }
 
     response = requests.get(analysis_url, headers=headers)
@@ -121,5 +126,3 @@ if __name__ == '__main__':
 
     # After most_similar_top_5 has completed, wait for getInfo to complete
     info_thread.join()
-    
-
