@@ -2,6 +2,14 @@ import subprocess
 import sys
 import re
 import os
+import platform
+
+def is_running_on_linux():
+    return platform.system() == 'Linux'
+
+def is_running_on_mac():
+    return platform.system() == 'Darwin'
+
 
 def disassemble_and_process(file_name, cache_dir = '.'):
     file_path = file_name
@@ -26,11 +34,14 @@ def disassemble_and_process(file_name, cache_dir = '.'):
 
 def extract_opcodes(line):
     parts = line.split('\t')
-    if len(parts) > 2:
-        # The opcode is typically the second part of the line, after splitting by tab
-        opcode = parts[2].split()[0]
-        # opcode = parts[1].strip() # FOR MAC ONLY 
-        return opcode
+    if is_running_on_mac():
+        if len(parts) >= 2:
+            opcode = parts[1].strip()
+            return opcode
+    elif is_running_on_linux():
+        if len(parts) >= 3:
+            opcode = parts[2].split()[0]
+            return opcode
     return None
 
 def process_disassembly(disassembly_file_name, opcodes_file_name, cache_dir = '.'):
