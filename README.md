@@ -6,6 +6,9 @@ You can download an example dataset for the `MalwareAnalysis` project from the f
 
 This dataset can be used to test and train the model.
 
+## Create your own .env file
+Set VIRUSTOTAL_API_KEY to be your API key from [VirusTotal](https://docs.virustotal.com/reference/overview)
+
 ## Training the Model on Your Own Dataset
 
 1. **Create Folder Structure**:
