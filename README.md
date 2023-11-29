@@ -6,6 +6,17 @@ You can download an example dataset for the `MalwareAnalysis` project from the f
 
 This dataset can be used to test and train the model.
 
+## Install Python
+For MacOS: 
+1. Download Python from python.org/downloads.
+2. Open the `.pkg` file and follow instructions.
+3. Verify in Terminal: `python3 --version`.
+
+For Linux:
+1. Update packages: `sudo apt-get update`.
+2. Install Python: `sudo apt-get install python3`.
+3. Verify in Terminal: `python3 --version`.
+
 ## Create your own .env file
 Set VIRUSTOTAL_API_KEY to be your API key from [VirusTotal](https://docs.virustotal.com/reference/overview)
 
